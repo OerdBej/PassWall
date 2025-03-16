@@ -1,5 +1,8 @@
 import { User } from '../models/User.js';
 import bcrypt from 'bcrypt';
+import { generateToken } from '../utils/generateToken.js';
+
+//sign up function
 export const signup = async (req, res) => {
   const { email, password, name } = req.body;
 
@@ -11,6 +14,7 @@ export const signup = async (req, res) => {
 
     //check if user exist in db
     const userExist = await User.findOne({ email });
+    console.log('user exist bro', userExist);
     if (userExist) {
       return res
         .status(400)
@@ -32,6 +36,18 @@ export const signup = async (req, res) => {
 
     //save it to db
     await user.save();
+
+    //created the token
+    generateToken(res, user._id);
+
+    res.status(201).json({
+      success: true,
+      user: {
+        ...user._doc,
+        password: undefined,
+      },
+      message: 'User Created ',
+    });
 
     //user dont exist hash the password
   } catch (error) {}
