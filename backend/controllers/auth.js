@@ -1,6 +1,7 @@
 import { User } from '../models/User.js';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../utils/generateToken.js';
+import { sendVerificationEmail } from '../mailtrap/emails.js';
 
 //sign up function
 export const signup = async (req, res) => {
@@ -22,7 +23,9 @@ export const signup = async (req, res) => {
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
-    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationToken = Math.floor(
+      100000 + Math.random() * 900000
+    ).toString();
 
     const user = new User({
       email,
@@ -37,6 +40,8 @@ export const signup = async (req, res) => {
 
     //created the token
     generateToken(res, user._id);
+
+    await sendVerificationEmail(user.email, verificationToken);
 
     res.status(201).json({
       success: true,
